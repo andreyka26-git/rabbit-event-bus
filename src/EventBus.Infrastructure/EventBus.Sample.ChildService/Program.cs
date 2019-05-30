@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace EventBus.Sample.MainService
+namespace EventBus.Sample.ChildService
 {
     public class Program
     {

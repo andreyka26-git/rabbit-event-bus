@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EventBus.Sample.MainService.Controllers
+namespace EventBus.Sample.ChildService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

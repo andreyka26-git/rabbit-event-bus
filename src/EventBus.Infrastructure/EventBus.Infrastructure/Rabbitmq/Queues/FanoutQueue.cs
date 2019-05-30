@@ -22,6 +22,8 @@ namespace EventBus.Infrastructure.Rabbitmq.Queues
 
         private IConnection _connection;
         private IModel _model;
+        private string _queueName;
+        private string _consumeTag;
 
         public FanoutQueue(IConnectionFactory factory,
             IMessageSerializer serializer,
@@ -78,6 +80,11 @@ namespace EventBus.Infrastructure.Rabbitmq.Queues
                 if (!autoAck)
                     _model.BasicAck(args.DeliveryTag, false);
             };
+
+            _queueName = _model.QueueDeclare().QueueName;
+            _model.QueueBind(_queueName, _exchangeName, "");
+
+            _consumeTag = _model.BasicConsume(_queueName, autoAck, consumer);
         }
 
         public void SubscribeWithAsync(Func<T, IModel, BasicDeliverEventArgs, Task> callback, bool autoAck = false)
@@ -88,7 +95,7 @@ namespace EventBus.Infrastructure.Rabbitmq.Queues
             if (!_factory.IsAsyncConsumerAllowed())
                 throw new InvalidDataException("You don't specify async consumer property.");
 
-            var consumer = new EventingBasicConsumer(_model);
+            var consumer = new AsyncEventingBasicConsumer(_model);
 
             consumer.Received += async (sender, args) =>
             {
@@ -105,6 +112,11 @@ namespace EventBus.Infrastructure.Rabbitmq.Queues
                 if (!autoAck)
                     _model.BasicAck(args.DeliveryTag, false);
             };
+
+            _queueName = _model.QueueDeclare().QueueName;
+            _model.QueueBind(_queueName, _exchangeName, "");
+
+            _consumeTag = _model.BasicConsume(_queueName, autoAck, consumer);
         }
 
         // Default implementation of Dispose pattern.
