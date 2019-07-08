@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
-using EventBus.Infrastructure.Abstractions;
+﻿using EventBus.Infrastructure.Abstractions;
 using EventBus.Infrastructure.Models;
 using EventBus.Sample.ChildService.Services;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace EventBus.Sample.ChildService.IntegrationEventHandlers
 {

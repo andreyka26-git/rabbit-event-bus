@@ -29,11 +29,11 @@ namespace EventBus.Infrastructure.Rabbitmq
         {
             var queue = _serviceProvider.GetRequiredService<IQueue<T>>();
             
-            var integrationEvent = _serviceProvider.GetRequiredService<IIntegrationEventHandler<T>>();
+            var integrationEventHandler = _serviceProvider.GetRequiredService<IIntegrationEventHandler<T>>();
 
             queue.Connect();
             queue.SubscribeWithAsync(async (message, model, args) =>
-                await integrationEvent.HandleAsync(message).ConfigureAwait(false));
+                await integrationEventHandler.HandleAsync(message).ConfigureAwait(false));
         }
     }
 }

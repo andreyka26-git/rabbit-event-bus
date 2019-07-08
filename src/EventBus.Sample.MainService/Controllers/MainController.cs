@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using EventBus.Infrastructure.Abstractions;
+﻿using EventBus.Infrastructure.Abstractions;
 using EventBus.Infrastructure.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +15,7 @@ namespace EventBus.Sample.MainService.Controllers
         }
 
         // POST api/values
-        [HttpPost("publish message")]
+        [HttpPost("publish-message")]
         public void Post([FromBody] MainServiceModel model)
         {
             _eventBus.Publish(model);

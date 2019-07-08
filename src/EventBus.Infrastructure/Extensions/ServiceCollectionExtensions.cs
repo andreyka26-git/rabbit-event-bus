@@ -37,6 +37,9 @@ namespace EventBus.Infrastructure.Extensions
 
         /// <summary>
         /// Adds necessary services for publishing and subscribing to event bus.
+        /// IMPORTANT! Now library doesn't supported the case, when inside eventHandler injected some scoped service.
+        /// So make that service transient, or resolve it from serviceProvider.
+        /// 
         /// You need to specify section "RabbitOptions" in your appsettings and specify "Host"(string) - which is appropriate rabbitmq host,
         /// "AsyncConsumer"(bool) - to specify if receive will have accept async or sync callback and "ExchangeName" to know how to name your exchange.
         /// </summary>
