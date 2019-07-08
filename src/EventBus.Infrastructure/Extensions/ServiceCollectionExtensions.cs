@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using EventBus.Infrastructure.Abstractions;
+using EventBus.Infrastructure.Rabbitmq.EventSubscribers;
 using EventBus.Infrastructure.Rabbitmq.Queues;
 using EventBus.Infrastructure.Rabbitmq.Serializer;
 using Microsoft.Extensions.Configuration;
@@ -27,19 +28,11 @@ namespace EventBus.Infrastructure.Extensions
             ILoggerFactory loggerFactory, string exchangeName)
             where T : class, new()
         {
-            // ReSharper disable once SimplifyLinqExpression
-            if (!services.IsTypeInjected<IEventBus>())
-                services.AddSingleton<IEventBus, Rabbitmq.EventBus>();
-
-            if (!services.IsTypeInjected<IQueue<T>>())
-                services.AddFanoutQueue<T>(config, loggerFactory, exchangeName);
+            AddBasicIntegrationEventServices<T>(services, config, loggerFactory, exchangeName);
         }
 
         /// <summary>
         /// Adds necessary services for publishing and subscribing to event bus.
-        /// IMPORTANT! Now library doesn't supported the case, when inside eventHandler injected some scoped service.
-        /// So make that service transient, or resolve it from serviceProvider.
-        /// 
         /// You need to specify section "RabbitOptions" in your appsettings and specify "Host"(string) - which is appropriate rabbitmq host,
         /// "AsyncConsumer"(bool) - to specify if receive will have accept async or sync callback and "ExchangeName" to know how to name your exchange.
         /// </summary>
@@ -54,15 +47,9 @@ namespace EventBus.Infrastructure.Extensions
             where T : class, new()
             where TH : class, IIntegrationEventHandler<T>
         {
-            // ReSharper disable once SimplifyLinqExpression
-            if (!services.IsTypeInjected<IEventBus>())
-                services.AddSingleton<IEventBus, Rabbitmq.EventBus>();
-
-            if (!services.IsTypeInjected<IQueue<T>>())
-                services.AddFanoutQueue<T>(config, loggerFactory, exchangeName);
-
-            //TODO maybe check IsTypeInjected TH
-            if (!services.IsTypeInjected<T>())
+            AddBasicIntegrationEventServices<T>(services, config, loggerFactory, exchangeName);
+            
+            if (!services.IsTypeInjected<IIntegrationEventHandler<T>>())
                 services.AddTransient<IIntegrationEventHandler<T>, TH>();
         }
 
@@ -122,6 +109,19 @@ namespace EventBus.Infrastructure.Extensions
                 loggerFactory.CreateLogger<FanoutQueue<T>>()));
         }
 
+        private static void AddBasicIntegrationEventServices<T>(IServiceCollection services, IConfiguration config,
+            ILoggerFactory loggerFactory, string exchangeName)
+            where T : class, new()
+        {
+            if (!services.IsTypeInjected<IEventBus>())
+                services.AddSingleton<IEventBus, Rabbitmq.EventBus>();
+
+            if (!services.IsTypeInjected<IQueue<T>>())
+                services.AddFanoutQueue<T>(config, loggerFactory, exchangeName);
+
+            if (!services.IsTypeInjected<IEventMapper>())
+                services.AddSingleton<IEventMapper, EventMapper>();
+        }
 
         /// <summary>
         /// Checks either Type T has already registered in IOC

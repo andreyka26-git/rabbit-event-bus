@@ -1,5 +1,6 @@
 ﻿using System;
 using EventBus.Infrastructure.Abstractions;
+using EventBus.Infrastructure.Rabbitmq.EventSubscribers;
 using EventBus.Infrastructure.Rabbitmq.Queues;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,10 +8,11 @@ namespace EventBus.Infrastructure.Rabbitmq
 {
     public class EventBus : IEventBus
     {
+        private readonly IEventMapper _eventMapper;
         private readonly IServiceProvider _serviceProvider;
-
-        public EventBus(IServiceProvider serviceProvider)
+        public EventBus(IEventMapper eventMapper, IServiceProvider serviceProvider)
         {
+            _eventMapper = eventMapper;
             _serviceProvider = serviceProvider;
         }
 
@@ -29,11 +31,9 @@ namespace EventBus.Infrastructure.Rabbitmq
         {
             var queue = _serviceProvider.GetRequiredService<IQueue<T>>();
             
-            var integrationEventHandler = _serviceProvider.GetRequiredService<IIntegrationEventHandler<T>>();
-
             queue.Connect();
             queue.SubscribeWithAsync(async (message, model, args) =>
-                await integrationEventHandler.HandleAsync(message).ConfigureAwait(false));
+                await _eventMapper.MapEventAsync(message).ConfigureAwait(false));
         }
     }
 }
