@@ -1,6 +1,5 @@
-﻿using EventBus.Infrastructure.Consts;
-using EventBus.Infrastructure.Extensions;
-using EventBus.Infrastructure.Models;
+﻿using Common;
+using EventBus.Infrastructure;
 using EventBus.Sample.ChildService.IntegrationEventHandlers;
 using EventBus.Sample.ChildService.Services;
 using Microsoft.AspNetCore.Builder;
@@ -33,12 +32,11 @@ namespace EventBus.Sample.ChildService
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
 
-            services.AddIntegrationEventServices<MainServiceModel, MainIntegrationEventHandler>(Configuration, LoggerFactory,
-                Configuration.GetRabbitValue<string>(Consts.DefaultRabbitExchangeConfigurationName));
-            
-            services.AddTransient<IChildService, Services.ChildService>();
+            services.AddSingleton<IEventBus, Infrastructure.EventBus>();
+            services.AddScoped<IIntegrationEventHandler<MainServiceModel>, MainIntegrationEventHandler>();
+            services.AddScoped<IChildService, Services.ChildService>();
         }
-        
+
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
@@ -47,13 +45,12 @@ namespace EventBus.Sample.ChildService
             app.UseMvc();
 
             app.UseSwagger();
-            
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });
-            
-            app.SubscribeOnIntegrationEvent<MainServiceModel, MainIntegrationEventHandler>();
+
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
+
+            var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
+            eventBus.Subscribe<MainIntegrationEventHandler, MainServiceModel>(nameof(MainServiceModel),
+                env.ApplicationName);
         }
     }
 }

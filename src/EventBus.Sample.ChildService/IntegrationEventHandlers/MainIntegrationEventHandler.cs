@@ -1,8 +1,8 @@
-﻿using EventBus.Infrastructure.Abstractions;
-using EventBus.Infrastructure.Models;
-using EventBus.Sample.ChildService.Services;
+﻿using EventBus.Sample.ChildService.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using Common;
+using EventBus.Infrastructure;
 
 namespace EventBus.Sample.ChildService.IntegrationEventHandlers
 {
@@ -17,7 +17,7 @@ namespace EventBus.Sample.ChildService.IntegrationEventHandlers
             _childService = childService;
         }
 
-        public async Task HandleAsync(MainServiceModel @event)
+        public async Task Handle(MainServiceModel @event)
         {
             _logger.LogInformation($"Handling rabbit integration event: {@event.Name}, {@event.Content}");
             await _childService.DoSomethingAsync().ConfigureAwait(false);
